@@ -362,28 +362,48 @@ class Maze {
         let maxValue = -Infinity;
         let direction = -1;
         let curr = null;
-        if(curr = cell.north) {
-            if(curr.value > maxValue) {
-                maxValue = curr.value;
+        var showQ = document.getElementById("q").checked;
+        if (showQ) {
+            if(cell.moveNorth.q > maxValue) {
+                maxValue = cell.moveNorth.q;
                 direction = 0;
             }
-        }
-        if(curr = cell.east) {
-            if(curr.value > maxValue) {
-                maxValue = curr.value;
+            if(cell.moveEast.q > maxValue) {
+                maxValue = cell.moveEast.q;
                 direction = 1;
             }
-        }
-        if(curr = cell.south) {
-            if(curr.value > maxValue) {
-                maxValue = curr.value;
+            if(cell.moveSouth.q > maxValue) {
+                maxValue = cell.moveSouth.q;
                 direction = 2;
             }
-        }
-        if(curr = cell.west) {
-            if(curr.value > maxValue) {
-                maxValue = curr.value;
+            if(cell.moveWest.q > maxValue) {
+                maxValue = cell.moveWest.q;
                 direction = 3;
+            }
+        } else {
+            if (curr = cell.north) {
+                if (curr.value > maxValue) {
+                    maxValue = curr.value;
+                    direction = 0;
+                }
+            }
+            if (curr = cell.east) {
+                if (curr.value > maxValue) {
+                    maxValue = curr.value;
+                    direction = 1;
+                }
+            }
+            if (curr = cell.south) {
+                if (curr.value > maxValue) {
+                    maxValue = curr.value;
+                    direction = 2;
+                }
+            }
+            if (curr = cell.west) {
+                if (curr.value > maxValue) {
+                    maxValue = curr.value;
+                    direction = 3;
+                }
             }
         }
         return direction;
@@ -430,10 +450,10 @@ class Maze {
                     }
                 }
                 ctx.fillStyle = "red";
-                if (!cell.north) ctx.fillRect(i * length - width, j * length, length + 2*width, width);
-                if (!cell.south) ctx.fillRect(i * length - width, j * length + length - width, length + 2*width, width);
-                if (!cell.west) ctx.fillRect(i * length, j * length - width, width, length + 2*width);
-                if (!cell.east) ctx.fillRect(i * length + length - width, j * length - width, width, length + 2*width);
+                if (!cell.north) ctx.fillRect(i * length - width, j * length, length + 2 * width, width);
+                if (!cell.south) ctx.fillRect(i * length - width, j * length + length - width, length + 2 * width, width);
+                if (!cell.west) ctx.fillRect(i * length, j * length - width, width, length + 2 * width);
+                if (!cell.east) ctx.fillRect(i * length + length - width, j * length - width, width, length + 2 * width);
                 // ctx.fillStyle = "green";
                 // if (cell.solution && showSolution) {
                 //     if (cell.north && j > 0 && this.maze[i][j - 1].solution) { // north
@@ -457,10 +477,10 @@ class Maze {
         for (var i = 0; i < this.dim; i++) {
             for (var j = 0; j < this.dim; j++) {
                 const xShift = 10;
-                const yShift = this.type === 0 ? length/2 + 64 : length/2 + 9;
-                const yRewardShift = this.type === 0 ? yShift -80 : yShift - 26;
+                const yShift = this.type === 0 ? length / 2 + 64 : length / 2 + 9;
+                const yRewardShift = this.type === 0 ? yShift - 80 : yShift - 26;
 
-                ctx.font = this.type === 0 ? "90px Arial" : "20px Arial";
+                ctx.font = showQ ? this.type === 0 ? "48px Arial" : "12px Arial" : this.type === 0 ? "90px Arial" : "20px Arial";
                 if (showRewards) {
                     if (this.maze[i][j].pit) ctx.fillStyle = "white"; else ctx.fillStyle = "black";
                     ctx.fillText(this.maze[i][j].utility, i * length + xShift, j * length + yRewardShift);
@@ -471,14 +491,16 @@ class Maze {
                     // ctx.strokeRect(i * length + xShift, j * length + yShift + 3, 24, -24);
                 }
                 if (showQ && !this.maze[i][j].final) {
+                    const shift1 = this.type === 0 ? 48 : 18;
+                    const shift2 = this.type === 0 ? length / 2 + 12 : length / 2 + 6;
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
-                    ctx.fillText(Math.floor(this.maze[i][j].moveNorth.q * 10) / 10, i * length + length / 3 + 2, j * length + width + 12);
+                    ctx.fillText(Math.floor(this.maze[i][j].moveNorth.q), i * length + length / 3 + 2, j * length + shift1);
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
-                    ctx.fillText(Math.floor(this.maze[i][j].moveEast.q * 10) / 10, i * length + 3 * length / 4 - 12, j * length + length / 3 + width + 12);
+                    ctx.fillText(Math.floor(this.maze[i][j].moveEast.q), i * length + 3 * length / 4 - 12, j * length + shift2);
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
-                    ctx.fillText(Math.floor(this.maze[i][j].moveSouth.q * 10) / 10, i * length + length / 3 + 2, j * length + length - width);
+                    ctx.fillText(Math.floor(this.maze[i][j].moveSouth.q), i * length + length / 3 + 2, j * length + length - width - 2);
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
-                    ctx.fillText(Math.floor(this.maze[i][j].moveWest.q * 10) / 10, i * length + width + 2, j * length + length / 3 + width + 12);
+                    ctx.fillText(Math.floor(this.maze[i][j].moveWest.q), i * length + width + 2, j * length + shift2);
                 }
                 if (fog && !this.maze[i][j].explored) {
                     ctx.save();
