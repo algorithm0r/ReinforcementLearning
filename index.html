@@ -1,56 +1,73 @@
-﻿
-<!DOCTYPE html>
-<html>
+﻿<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Reinforcement Learning</title>
-    <link type="text/css" rel="stylesheet" href="./style.css">
-    <script type="text/javascript" src="./assetmanager.js"></script>
-    <script type="text/javascript" src="./gameengine.js"></script>
-    <script type="text/javascript" src="./agent.js"></script>
-    <script type="text/javascript" src="./maze.js"></script>
-    <script type="text/javascript" src="./main.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reinforcement Learning</title>
+<!-- Claude Basic 0.6.0, vendored and pinned -->
+<link rel="stylesheet" href="vendor/claude-basic.css">
+<script src="vendor/claude-basic.js"></script>
+<style>
+  .top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 14px var(--cb-gap) 0; }
+  .top .spacer { flex: 1; }
+  .top h1 { margin: 0; font-size: 20px; }
+  .about { max-width: 980px; padding: 4px var(--cb-gap) 0; color: var(--cb-muted); font-size: 13px; line-height: 1.5; }
+  .cb-sim-world { max-width: 760px; }
+  #gameWorld { width: 100%; height: auto; background: lightgrey; }
+  #status { font-size: 13px; color: var(--cb-muted); white-space: pre; }
+  #controls .group { margin-top: 8px; }
+  #controls .group .body { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+</style>
 </head>
 <body>
-    <canvas id="gameWorld" width="800" height="800" style="border: 1px solid white; background: lightgrey"></canvas>
-    <div class="wrapper" id="environment">
-        <div>Environment</div>
-        <input type="text" id="dim" value="10" /> Dimension<br />
-        <input type="text" id="reward" value="10000" /> Goal Reward<br />
-        <input type="text" id="gamma" value="0.9" /> Discount Rate<br />
-        <input type="text" id="walls_deleted" value="0" /> Walls Deleted<br />
-        <input type="text" id="pits" value="0" /> Pits<br />
-        <input type="checkbox" id="icy" /> Icy<br />
-        <input type="text" id="slippy" value="0.1" /> Slippy<br />
-        <input type="button" class="button" id="new_43" value="New 4x3"><br />
-        <input type="button" class="button" id="new_maze" value="New Maze"><br />
-        <input type="button" class="button" id="new_bridge" value="New Ice Bridge"><br />
+<div class="top">
+  <h1 class="cb-title">Reinforcement Learning<span class="cb-dot">.</span></h1>
+  <span class="spacer"></span>
+  <span id="picker"></span>
+</div>
+<p class="about">
+  A robot learns its way to the gold in a grid world. Every step costs 5; the gold pays the goal
+  reward (100 in the 4&times;3 world) and a pit costs the same, and either one ends the episode and
+  sends the robot back to the start. The blue number in each cell is its value: the cell's reward
+  plus &gamma; times the best expected value one move away. The robot updates the value of each
+  cell it stands on, using what it knows of where each move leads. With Q-learning on, it instead
+  learns a value for each of the four moves (the purple numbers) from what actually happened, with
+  no model of the world. It moves at random with chance epsilon, which starts at 1 and is multiplied
+  by the decay factor every so many steps; otherwise it takes the best move. On ice, a move slips to
+  either side with the slip chance. Solve values runs value iteration to convergence.
+</p>
+
+<div class="cb-sim">
+  <div class="cb-sim-stage">
+    <div class="cb-sim-world"><canvas id="gameWorld" width="800" height="800"></canvas></div>
+    <div class="cb-sim-bar">
+      <span id="status"></span>
+      <cb-sim-legend><script type="application/json">[
+        {"label": "wall", "mark": "line", "color": "red"},
+        {"label": "gold", "mark": "circle", "color": "#E0B000"},
+        {"label": "pit", "mark": "circle", "color": "#333333"},
+        {"label": "value of the cell", "mark": "square", "color": "blue"},
+        {"label": "value of each move (Q-learning)", "mark": "square", "color": "purple"},
+        {"label": "best move", "mark": "line", "color": "#8FD98F"},
+        {"label": "unexplored", "mark": "swatch", "color": "#3a3a3a"},
+        {"label": "ice", "mark": "swatch", "color": "lightblue"}
+      ]</script></cb-sim-legend>
     </div>
-    <div class="wrapper" id="agent">
-        <div>Agent</div>
-        <input type="button" class="button" id="new_agent" value="New Agent"><br />
-        <input type="button" class="button" id="delete" value="Delete Agent"><br />
-        <input type="text" id="epsilon" value="0.9" /> Epsilon<br />
-        <input type="text" id="epsilon_decay" value="100" /> Epsilon Decay<br />
-        <input type="checkbox" id="explorer"/> Explorer<br />
-        <input type="checkbox" id="drunk" /> Drunken Sailor<br />
-        <input type="checkbox" id="update_explored" /> Update Explored<br />
-        <input type="checkbox" id="q" /> Q-learning<br />
-        <input type="text" id="speed" value="0.1" /> Time per Tick (s)<br />
-        <div id="tick">Tick: 0</div>
-        <div id="ep">Epsilon: 1</div>
-        <div id="rew">Reward: 0</div>
-    </div><br />
-    <div class="wrapper" id="display">
-        <div>Display</div>
-        <input type="checkbox" id="show_solution" />Show Solution<br />
-        <input type="checkbox" id="show_reward" />Show Reward<br />
- <!--       <input type="checkbox" id="show_value" />Show Value<br />
-        <input type="checkbox" id="show_q" />Show Value<br />
- -->       <input type="checkbox" id="fog" checked />Fog of War<br />
-        <input type="button" class="button" id="all_update" value="Update All Values"><br />
-        <input type="button" class="button" id="value_function" value="Value Function"><br />
-        <input type="button" class="button" id="reset" value="Reset Values"><br />
-    </div><br />
+    <div id="controls"></div>
+  </div>
+
+  <div class="cb-sim-charts">
+    <cb-sim-series id="length" label="Steps to finish each episode" window="400" x-label="episode" class="wide"></cb-sim-series>
+    <cb-sim-series id="reward" label="Reward per episode" window="400" x-label="episode"></cb-sim-series>
+    <cb-sim-series id="epsilon" label="Epsilon (chance of a random move)" window="400" x-label="episode"></cb-sim-series>
+  </div>
+</div>
+
+<script src="./ui.js"></script>
+<script src="./assetmanager.js"></script>
+<script src="./gameengine.js"></script>
+<script src="./agent.js"></script>
+<script src="./maze.js"></script>
+<script src="./main.js"></script>
 </body>
 </html>

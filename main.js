@@ -2,85 +2,33 @@ function randomInt(n) {
     return Math.floor(Math.random() * n);
 }
 
-function newFourByThree(gameEngine) {
-    var maze = new Maze(gameEngine, 0);
-    gameEngine.entities = [];
-    gameEngine.addEntity(maze);
+// The world (entity 0) and the agent (entity 1). ui.js builds the page around them.
+var RL = { game: null, worldType: 0 };
 
-    var allUpdate = document.getElementById("all_update");
-    var valFunc = document.getElementById("value_function");
-    var reset = document.getElementById("reset");
+// type: 0 = the 4x3 world, 1 = a maze, 2 = the ice bridge; no type rebuilds the current kind
+function newWorld(type) {
+    if (type !== undefined) RL.worldType = type;
+    RL.game.entities = [new Maze(RL.game, RL.worldType)];
+    RL.game.ctx.canvas.height = RL.worldType === 0 ? 600 : 800; // the 4x3 world has no fourth row
+    newAgent();
+}
 
-    allUpdate.onclick = function () {
-        maze.updateValues();
-    };
+function newAgent() {
+    var maze = RL.game.entities[0];
+    maze.resetValues();
+    maze.resetExplored();
+    var agent = new Agent(RL.game, maze);
+    RL.game.entities = [maze, agent];
+    if (window.onAgent) onAgent(agent);
+}
 
-    valFunc.onclick = function () {
-        maze.calculateValueFunction();
-    };
-
-    reset.onclick = function () {
-        maze.resetValues();
-    }
-
-};
-
-function newMaze(gameEngine) {
-    var maze = new Maze(gameEngine, 1);
-    gameEngine.entities = [];
-    gameEngine.addEntity(maze);
-    //newAgent(gameEngine);
-
-    var allUpdate = document.getElementById("all_update");
-    var valFunc = document.getElementById("value_function");
-    var reset = document.getElementById("reset");
-
-    allUpdate.onclick = function () {
-        maze.updateValues();
-    };
-
-    valFunc.onclick = function () {
-        maze.calculateValueFunction();
-    };
-
-    reset.onclick = function () {
-        maze.resetValues();
-    }
-
-};
-
-function newBridge(gameEngine) {
-    var maze = new Maze(gameEngine, 2);
-    gameEngine.entities = [];
-    gameEngine.addEntity(maze);
-    //newAgent(gameEngine);
-
-    var allUpdate = document.getElementById("all_update");
-    var valFunc = document.getElementById("value_function");
-    var reset = document.getElementById("reset");
-
-    allUpdate.onclick = function () {
-        maze.updateValues();
-    };
-
-    valFunc.onclick = function () {
-        maze.calculateValueFunction();
-    };
-
-    reset.onclick = function () {
-        maze.resetValues();
-    }
-
-};
-
-function newAgent(gameEngine) {
-    var agent = new Agent(gameEngine, gameEngine.entities[0]);
-    gameEngine.entities[0].resetValues();
-    gameEngine.entities[0].resetExplored();
-    if (gameEngine.entities[1]) gameEngine.entities[1].removeFromWorld = true;
-    gameEngine.addEntity(agent);
-};
-
+function removeAgent() {
+    var maze = RL.game.entities[0];
+    maze.resetValues();
+    maze.resetExplored();
+    RL.game.entities = [maze];
+    if (window.onAgent) onAgent(null);
+}
 
 var ASSET_MANAGER = new AssetManager();
 
@@ -95,36 +43,8 @@ ASSET_MANAGER.downloadAll(function () {
     var canvas = document.getElementById('gameWorld');
     var ctx = canvas.getContext('2d');
 
-    var gameEngine = new GameEngine();
-    gameEngine.init(ctx);
-    gameEngine.start();
-    newFourByThree(gameEngine);
-
-    var new4 = document.getElementById("new_43");
-    var newB = document.getElementById("new_bridge");
-    var newM = document.getElementById("new_maze");
-    var newA = document.getElementById("new_agent");
-    var del = document.getElementById("delete");
-
-    new4.onclick = function () {
-        newFourByThree(gameEngine);
-    };
-
-    newB.onclick = function () {
-        newBridge(gameEngine);
-    };
-
-    newM.onclick = function () {
-        newMaze(gameEngine);
-    };
-
-    newA.onclick = function () {
-        newAgent(gameEngine);
-    };
-
-    del.onclick = function () {
-        gameEngine.entities[0].resetValues();
-        gameEngine.entities[0].resetExplored();
-        if (gameEngine.entities[1]) gameEngine.entities[1].removeFromWorld = true;
-    }
+    RL.game = new GameEngine();
+    RL.game.init(ctx);
+    RL.game.start();
+    newWorld(0);
 });

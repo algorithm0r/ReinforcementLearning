@@ -8,9 +8,8 @@ class Maze {
         this.type = type;
         this.game = game;
         this.maze = [];
-        this.icy = document.getElementById('icy') ? document.getElementById('icy').checked : false;
-        this.slippy = document.getElementById('slippy') ? parseFloat(document.getElementById('slippy').value) : 0.1;
-        this.gamma = document.getElementById('gamma') ? parseFloat(document.getElementById('gamma').value) : 0.9;
+        this.icy = PARAMS.icy;
+        this.slippy = PARAMS.slippy;
 
         if (type === 0) {
             this.dim = 4;
@@ -20,10 +19,10 @@ class Maze {
             this.generateFourByThree();
             this.attachMoves();
         } else if (type === 1) {
-            this.dim = document.getElementById('dim') ? parseInt(document.getElementById('dim').value) : 10;
-            this.reward = document.getElementById('reward') ? parseInt(document.getElementById('reward').value) : 10000;
-            this.deleted = document.getElementById('walls_deleted') ? parseInt(document.getElementById('walls_deleted').value) : 0;
-            this.pits = document.getElementById('pits') ? parseInt(document.getElementById('pits').value) : 0;
+            this.dim = PARAMS.dim;
+            this.reward = PARAMS.reward;
+            this.deleted = PARAMS.walls_deleted;
+            this.pits = PARAMS.pits;
 
             this.makeGrid();
             this.generateMaze(0, 0);
@@ -34,7 +33,7 @@ class Maze {
             this.attachMoves();
         } else if (type === 2) {
             this.dim = 10;
-            this.reward = document.getElementById('reward') ? parseInt(document.getElementById('reward').value) : 10000;
+            this.reward = PARAMS.reward;
 
             this.makeGrid();
             this.generateBridge();
@@ -256,7 +255,7 @@ class Maze {
         }
         if (sum > max) max = sum;
 
-        newValue += max * this.gamma;
+        newValue += max * PARAMS.gamma;
 
         cell.value = newValue
         return (cell.value !== oldValue);
@@ -362,8 +361,7 @@ class Maze {
         let maxValue = -Infinity;
         let direction = -1;
         let curr = null;
-        var showQ = document.getElementById("q").checked;
-        if (showQ) {
+        if (PARAMS.q) {
             if(cell.moveNorth.q > maxValue) {
                 maxValue = cell.moveNorth.q;
                 direction = 0;
@@ -413,11 +411,10 @@ class Maze {
         var length = 800 / this.dim;
         var width = length / 20;
 
-        var showSolution = document.getElementById("show_solution").checked;
-        //var showValues = document.getElementById("show_value").checked;
-        var showRewards = document.getElementById("show_reward").checked;
-        var showQ = document.getElementById("q").checked;
-        var fog = document.getElementById("fog").checked;
+        var showSolution = PARAMS.show_solution;
+        var showRewards = PARAMS.show_reward;
+        var showQ = PARAMS.q;
+        var fog = PARAMS.fog;
 
         if (this.icy) {
             ctx.fillStyle = "lightblue";
@@ -476,11 +473,12 @@ class Maze {
 
         for (var i = 0; i < this.dim; i++) {
             for (var j = 0; j < this.dim; j++) {
-                const xShift = 10;
-                const yShift = this.type === 0 ? length / 2 + 64 : length / 2 + 9;
-                const yRewardShift = this.type === 0 ? yShift - 80 : yShift - 26;
+                const k = this.type === 0 ? 1 : length / 80; // text was sized for a 10x10 grid
+                const xShift = 10 * k;
+                const yShift = this.type === 0 ? length / 2 + 64 : length / 2 + 9 * k;
+                const yRewardShift = this.type === 0 ? yShift - 80 : yShift - 26 * k;
 
-                ctx.font = showQ ? this.type === 0 ? "48px Arial" : "12px Arial" : this.type === 0 ? "90px Arial" : "20px Arial";
+                ctx.font = showQ ? this.type === 0 ? "48px Arial" : 12 * k + "px Arial" : this.type === 0 ? "90px Arial" : 20 * k + "px Arial";
                 if (showRewards) {
                     if (this.maze[i][j].pit) ctx.fillStyle = "white"; else ctx.fillStyle = "black";
                     ctx.fillText(this.maze[i][j].utility, i * length + xShift, j * length + yRewardShift);
@@ -491,12 +489,12 @@ class Maze {
                     // ctx.strokeRect(i * length + xShift, j * length + yShift + 3, 24, -24);
                 }
                 if (showQ && !this.maze[i][j].final) {
-                    const shift1 = this.type === 0 ? 48 : 18;
-                    const shift2 = this.type === 0 ? length / 2 + 12 : length / 2 + 6;
+                    const shift1 = this.type === 0 ? 48 : 18 * k;
+                    const shift2 = this.type === 0 ? length / 2 + 12 : length / 2 + 6 * k;
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
                     ctx.fillText(Math.floor(this.maze[i][j].moveNorth.q), i * length + length / 3 + 2, j * length + shift1);
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
-                    ctx.fillText(Math.floor(this.maze[i][j].moveEast.q), i * length + 3 * length / 4 - 12, j * length + shift2);
+                    ctx.fillText(Math.floor(this.maze[i][j].moveEast.q), i * length + 3 * length / 4 - 12 * k, j * length + shift2);
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
                     ctx.fillText(Math.floor(this.maze[i][j].moveSouth.q), i * length + length / 3 + 2, j * length + length - width - 2);
                     if (this.maze[i][j].pit) ctx.fillStyle = "pink"; else ctx.fillStyle = "purple";
